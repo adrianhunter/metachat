@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+  <head>
+  <script src="https://www.moneybutton.com/moneybutton.js"></script>
+  </head>
+  <body>
+
+
+    <h1>Metanet Chat</h1>
+
+
+
+
+    <ul id="posts">
+
+    </ul>
+
+
+    <div id='my-money-button'></div>
+
+  <script>
+
+  function loadMessages() {
+    var query = {
+      v: 3,
+      q: {
+        find: {
+          'out.s1': 'HELLOMETANET'
+        },
+        limit: 50
+      }
+    };
+    var b64 = btoa(JSON.stringify(query));
+    var url = 'https://bitgraph.network/q/' + b64;
+
+    var header = {
+      headers: { key: '1FqXopESziMTrJU4rTYL6vkpPzo41Zhqzy' }
+    };
+
+    fetch(url, header)
+      .then(function(r) {
+        return r.json();
+      })
+      .then(function(result) {
+        console.log(result);
+
+        const allResults = [];
+        if (result.u.length) {
+          allResults.push(...result.u);
+        }
+        if (result.c.length) {
+          allResults.push(...result.c);
+        }
+
+        allResults.forEach(tx => {
+          console.log(tx.out);
+          const message = tx.out[0].s2;
+
+          appendMessage(message);
+        });
+      });
+  }
+
+  function initBitScocket() {
+    var query = {
+      v: 3,
+      q: {
+        find: {
+          'out.s1': 'HELLOMETANET'
+        }
+      }
+    };
+
+    // Encode it in base64 format
+    var b64 = btoa(JSON.stringify(query));
+
+    // Subscribe
+    var bitsocket = new EventSource(
+      'https://genesis.bitdb.network/s/1FnauZ9aUH2Bex6JzdcV4eNX7oLSSEbxtN/' + b64
+    );
+
+    // Event handler
+    bitsocket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+
+      console.log('on message', data);
+      data.data.forEach(tx => {
+        appendMessage(tx.out[0].s2);
+      });
+    };
+  }
+
+  const $posts = document.getElementById('posts');
+
+  function appendMessage(message) {
+    var li = document.createElement('li');
+    li.textContent = message;
+
+    $posts.insertBefore(li, $posts.children[0]);
+  }
+
+  loadMessages();
+  initBitScocket();
+
+  
+  </script>
+
+
+  </body>
+</html>
